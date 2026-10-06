@@ -1,0 +1,42 @@
+name: Education notifier
+on:
+  schedule:
+    - cron: '7 * * * *'
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Verify encrypted state without collection or Telegram requests
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: education-notifier
+  cancel-in-progress: false
+jobs:
+  notify:
+    if: vars.EDU_CLOUD_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Collect, evaluate and notify
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EDU_STATE_KEY: ${{ secrets.EDU_STATE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERIFY_ONLY: ${{ inputs.verify_only }}
+        run: |
+          if [ "$VERIFY_ONLY" = "true" ]; then
+            node scripts/cloud-run.mjs --verify-only
+          else
+            node scripts/cloud-run.mjs
+          fi

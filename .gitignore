@@ -1,0 +1,13 @@
+.env*
+node_modules/
+.cache/
+reports/
+*.lock
+*.tmp
+config.json
+sources.json
+operation-config.json
+operation-exclusions.json
+reviews.json
+opening-state.json
+state.json
