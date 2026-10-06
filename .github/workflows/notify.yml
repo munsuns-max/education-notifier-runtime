@@ -10,13 +10,15 @@ on:
         type: boolean
         default: false
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: education-notifier
   cancel-in-progress: false
 jobs:
   notify:
-    if: vars.EDU_CLOUD_ENABLED == 'true'
+    if: vars.EDU_CLOUD_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:

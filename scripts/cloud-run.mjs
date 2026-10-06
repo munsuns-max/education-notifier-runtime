@@ -2,7 +2,6 @@ import {fileURLToPath} from 'node:url';
 import {githubStateStore,hydrateState,installCloudPersistence} from '../lib/cloud-state.mjs';
 import {runtimeDecision} from '../lib/runtime-owner.mjs';
 import {hash} from '../lib/content.mjs';
-import {readJson} from '../lib/storage.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 let store;
 try {
@@ -22,7 +21,7 @@ try {
  }else {
   process.env.EDU_RUNTIME='github-actions';process.argv.push('--send');
   await import('../find.mjs');await store.flush();
-  const health=await readJson(new URL('../reports/cloud-health.json',import.meta.url),{});
+  const health=(await store.load()).files['reports/cloud-health.json'] || {};
   await store.update('reports/cloud-health.json',{...health,finishedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID,phase:process.exitCode?'completed-with-source-failures':'completed',applicationSubmitted:false});
   console.log('외부 수집·판정 실행 완료. 신청 기능 비활성.');
  }
